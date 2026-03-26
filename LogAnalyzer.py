@@ -68,6 +68,7 @@ for event in events:
         if event_data.ip in failed_by_ip:
             if failed_by_ip[event_data.ip]["count"] >= 10 and (event_data.time - failed_by_ip[event_data.ip]["start_time"]).total_seconds() <= 300:
                 print(f"Successful Brute Forc attempt suspected | {event_data.ip} | {event_data.time}")
+                failed_by_ip[event_data.ip]["Brute_force"] = True
         
     elif event_data.event_id=="4625":
         if event_data.ip in failed_by_ip :
@@ -84,9 +85,12 @@ for event in events:
             failed_by_ip[event_data.ip] = {
                 "count": 1,
                 "start_time": event_data.time,
-                "alerted": False
+                "alerted": False,
+                "Brute_force": False
             }      
     elif event_data.event_id=="4634":
         e_log_out+=1
     elif event_data.event_id=="4672":
-        e_log_admin+=1
+        if event_data.ip in failed_by_ip:
+            if failed_by_ip[event_data.ip]["Brute_force"] == True:
+                print(f"Admin Log In after Brute Force | {event_data.ip} | {event_data.time}")
