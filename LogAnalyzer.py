@@ -68,29 +68,38 @@ for event in events:
         if event_data.ip in failed_by_ip:
             if failed_by_ip[event_data.ip]["count"] >= 10 and (event_data.time - failed_by_ip[event_data.ip]["start_time"]).total_seconds() <= 300:
                 print(f"Successful Brute Forc attempt suspected | {event_data.ip} | {event_data.time}")
-                failed_by_ip[event_data.ip]["Brute_force"] = True
         
     elif event_data.event_id=="4625":
         if event_data.ip in failed_by_ip :
             if (event_data.time - failed_by_ip[event_data.ip]["start_time"]).total_seconds() <= 300:
                 failed_by_ip[event_data.ip]["count"] += 1
-                if failed_by_ip[event_data.ip]["count"] >= 10 and failed_by_ip[event_data.ip]["alerted"] == False:
-                    print(f"Brute Force attempt suspected | 10 or more login attempts in a short timeframe | {event_data.ip} |{failed_by_ip[event_data.ip]['start_time']}")
-                    failed_by_ip[event_data.ip]["alerted"] = True
+                failed_by_ip[event_data.ip]["users"].add(event_data.user)
+                    
+                if len(failed_by_ip[event_data.ip]["users"]) >= 5 and failed_by_ip[event_data.ip]["user_spraying_alerted"] == False:
+                    print(f"User enumeration suspected | Login attempts on 5 or more different accounts by the same IP adress | {event_data.ip} | {event_data.time}")
+                    failed_by_ip[event_data.ip]["user_spraying_alerted"] = True  
+                
+                if failed_by_ip[event_data.ip]["count"] >= 10 and failed_by_ip[event_data.ip]["brute_force_alerted"] == False:
+                    print(f"Brute Force attempt suspected | 10 or more login attempts in a short timeframe | {event_data.ip} | {failed_by_ip[event_data.ip]['start_time']}")
+                    failed_by_ip[event_data.ip]["brute_force_alerted"] = True
             else:
                 failed_by_ip[event_data.ip]["count"]=1
                 failed_by_ip[event_data.ip]["start_time"]=event_data.time
-                failed_by_ip[event_data.ip]["alerted"] = False
+                failed_by_ip[event_data.ip]["users"].clear()
+                failed_by_ip[event_data.ip]["users"].add(event_data.user)
+                
+                failed_by_ip[event_data.ip]["brute_force_alerted"] = False
+                failed_by_ip[event_data.ip]["user_spraying_alerted"] = False 
+                
         else:
             failed_by_ip[event_data.ip] = {
                 "count": 1,
                 "start_time": event_data.time,
-                "alerted": False,
-                "Brute_force": False
+                "brute_force_alerted": False,
+                "user_spraying_alerted": False,
+                "users": {event_data.user}
             }      
     elif event_data.event_id=="4634":
         e_log_out+=1
     elif event_data.event_id=="4672":
-        if event_data.ip in failed_by_ip:
-            if failed_by_ip[event_data.ip]["Brute_force"] == True:
-                print(f"Admin Log In after Brute Force | {event_data.ip} | {event_data.time}")
+        e_log_admin
