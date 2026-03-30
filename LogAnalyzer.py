@@ -102,4 +102,4 @@ for event in events:
     elif event_data.event_id=="4634":
         e_log_out+=1
     elif event_data.event_id=="4672":
-        e_log_admin
+        e_log_admin+=1
